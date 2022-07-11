@@ -117,7 +117,7 @@
       "description": "Creates the distribution package",
       "steps": [
         {
-          "exec": "ncc build --source-map --license licenses.txt"
+          "exec": "esbuild --platform=node --bundle lib/index.js --outdir=dist --minify --sourcemap"
         }
       ]
     },

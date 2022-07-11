@@ -28,6 +28,10 @@
       "type": "build"
     },
     {
+      "name": "esbuild",
+      "type": "build"
+    },
+    {
       "name": "eslint-import-resolver-node",
       "type": "build"
     },
@@ -95,6 +99,10 @@
     },
     {
       "name": "@actions/github",
+      "type": "runtime"
+    },
+    {
+      "name": "aws-cdk-lib",
       "type": "runtime"
     },
     {

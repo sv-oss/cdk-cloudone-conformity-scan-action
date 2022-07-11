@@ -6,8 +6,9 @@ const project = new GitHubActionTypeScriptProject({
   devDeps: [
     'projen-github-action-typescript',
     '@types/node-fetch',
+    'esbuild',
   ],
-  name: 'cloudone-conformity-template-scan-action',
+  name: 'cdk-cloudone-conformity-scan-action',
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
   depsUpgradeOptions: {
@@ -17,10 +18,12 @@ const project = new GitHubActionTypeScriptProject({
     'wretch',
     'node-fetch',
     'form-data',
+    'aws-cdk-lib',
   ],
   actionMetadata: {
     author: 'Service Victoria Platform Engineering',
-    name: 'Cloud One Conformity Template Scan',
+    name: 'Cloud One Conformity Scan',
+    description: 'Perform a conformity scan on a CDK cloud assembly using TrendMicro CloudOne Conformity',
     runs: {
       using: RunsUsing.NODE_16,
       main: 'dist/index.js',
@@ -35,21 +38,29 @@ const project = new GitHubActionTypeScriptProject({
         required: false,
         default: 'au-1',
       },
-      templateFile: {
-        description: 'Path to a template file to scan',
+      cloudAssemblyDirectory: {
+        description: 'Path to the cdk cloud assembly directory',
+        required: false,
+        default: 'cdk.out',
+      },
+      selectStacks: {
+        description: 'Limit the scanning to the selected (comma-separated) list of stacks',
         required: false,
       },
-      templateType: {
-        description: 'Type of template to scan (one of "cloudformation-template" or "terraform-template")',
+      outputFile: {
+        description: 'File name in which the markdown output will be written',
         required: false,
-        default: 'cloudformation-template',
+        default: 'report.md',
       },
     },
   },
-  // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-  // packageName: undefined,  /* The "name" in package.json. */
 });
 
+project.addGitIgnore('cdk.out');
+project.addGitIgnore('output.md');
+
 project.tsconfig?.compilerOptions.lib?.push('dom');
+
+project.packageTask.reset('esbuild --platform=node --bundle lib/index.js --outdir=dist --minify --sourcemap');
 
 project.synth();

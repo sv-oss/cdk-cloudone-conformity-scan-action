@@ -8,5 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Scan Template
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
     - name: Scan
       uses: ./
+      with:
+        apiKey: ${{ secrets.CONFORMITY_API }}
+    - name: Scan
+      run: cat cloud-conformity-report.md

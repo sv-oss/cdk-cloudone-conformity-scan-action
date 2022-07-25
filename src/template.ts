@@ -1,6 +1,12 @@
 import { cdkPathByLogicalId, CdkStack } from './cdk';
 import { Account, Check } from './conformity';
 
+export const riskEmojiMap: Record<string, string> = {
+  HIGH: '⛔️',
+  MEDIUM: '⚠️',
+  LOW: 'ℹ️',
+};
+
 function indent(level: number, text: string, indentLength: number = 2): string {
   return ' '.repeat(indentLength*level) + text;
 };
@@ -58,11 +64,12 @@ function renderMarkdownChecksTable(checks: Check[], stack: CdkStack): string[] {
     const attr = check.attributes;
     const resource = cdkPathByLogicalId(stack, attr.resource) ?? attr.resource ?? '';
     const titleWithLink = `<a href="${attr['resolution-page-url']}">${attr['rule-title']}</a>`;
+    const riskLevelEmoji = riskEmojiMap[attr['risk-level']];
 
     lines.push(indent(2, '<tr>'));
     lines.push(indent(3, `<td>${titleWithLink}</td>`));
     lines.push(indent(3, `<td>${attr.service}</td>`));
-    lines.push(indent(3, `<td>${attr['risk-level']}</td>`));
+    lines.push(indent(3, `<td>${riskLevelEmoji} ${attr['risk-level']}</td>`));
     lines.push(indent(3, `<td>${attr.message}}</td>`));
     lines.push(indent(3, `<td>${resource}</td>`));
     lines.push(indent(2, '</tr>'));

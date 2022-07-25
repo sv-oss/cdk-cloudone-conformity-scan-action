@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 import * as core from '@actions/core';
 import { stacksFromCloudAssembly } from './cdk';
-import { getAccountByAwsAccountId, getAccounts, newConformityApiClient, riskFromValue, scanTemplate } from './conformity';
+import { Check, getAccountByAwsAccountId, getAccounts, newConformityApiClient, riskFromValue, scanTemplate } from './conformity';
 import { renderMarkdown } from './template';
 
 async function run() {
@@ -33,6 +33,8 @@ async function run() {
     const stacksRiskValues: number[] = [];
     const stacksMarkdown: string[] = [];
 
+    const cumulativeChecks: Check[] = [];
+
     for ( const stack of filteredStacks) {
       core.debug(`scanning stack ${stack.name}`);
 
@@ -49,6 +51,8 @@ async function run() {
 
       // Filter out passing checks
       const filteredChecks = checks.filter(c => c.attributes.status !== 'SUCCESS');
+
+      cumulativeChecks.push(...filteredChecks);
 
       if (filteredChecks.length > 0) {
         // Sort by risk level
@@ -70,6 +74,7 @@ async function run() {
     const maxRisk = stacksRiskValues.length > 0 ? Math.max(...stacksRiskValues) : 0;
     core.setOutput('risk', riskFromValue(maxRisk));
     core.setOutput('riskValue', maxRisk);
+    core.setOutput('summary', getSummary(cumulativeChecks));
 
     // Write output file
     const aggregateMarkdown = stacksMarkdown.join('\n\n---\n\n');
@@ -79,6 +84,14 @@ async function run() {
   } catch (error: any) {
     core.setFailed(error.message);
   }
+}
+
+function getSummary(checks: Check[]): string {
+  const lowChecksCount = checks.filter(c => c.attributes['risk-level'] === 'LOW').length.toString();
+  const mediumChecksCount = checks.filter(c => c.attributes['risk-level'] === 'MEDIUM').length.toString();
+  const highChecksCount = checks.filter(c => c.attributes['risk-level'] === 'HIGH').length.toString();
+
+  return `${highChecksCount} High, ${mediumChecksCount} Medium, ${lowChecksCount} Low`;
 }
 
 void run();

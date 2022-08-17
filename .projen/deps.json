@@ -5,12 +5,20 @@
       "type": "build"
     },
     {
+      "name": "@types/minimatch",
+      "type": "build"
+    },
+    {
       "name": "@types/node-fetch",
       "type": "build"
     },
     {
       "name": "@types/node",
       "version": "^14",
+      "type": "build"
+    },
+    {
+      "name": "@types/semver",
       "type": "build"
     },
     {
@@ -108,7 +116,15 @@
       "type": "runtime"
     },
     {
+      "name": "minimatch",
+      "type": "runtime"
+    },
+    {
       "name": "node-fetch",
+      "type": "runtime"
+    },
+    {
+      "name": "semver",
       "type": "runtime"
     },
     {

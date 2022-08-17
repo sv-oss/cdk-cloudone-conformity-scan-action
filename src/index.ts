@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs';
 import * as core from '@actions/core';
-import { stacksFromCloudAssembly } from './cdk';
+import { selectStacksFromCloudAssembly } from './cdk';
 import { Check, getAccountByAwsAccountId, getAccounts, newConformityApiClient, riskFromValue, scanTemplate } from './conformity';
 import { renderMarkdown } from './template';
 
@@ -14,12 +14,7 @@ async function run() {
     const selectStacksString = core.getInput('selectStacks', { required: false });
     const selectStacks = selectStacksString ? selectStacksString.split(',') : [];
 
-    const stacks = stacksFromCloudAssembly(cloudAssemblyDirectory);
-    if (stacks.length === 0) {
-      throw new Error('no stacks found in provided cloud assembly');
-    }
-
-    const filteredStacks = selectStacks.length > 0 ? stacks.filter(s => selectStacks.includes(s.name)) : stacks;
+    const filteredStacks = selectStacksFromCloudAssembly(cloudAssemblyDirectory, selectStacks);
 
     if (filteredStacks.length === 0) {
       throw new Error('no stacks found matching the provided filter');

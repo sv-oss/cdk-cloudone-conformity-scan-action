@@ -6,6 +6,8 @@ const project = new GitHubActionTypeScriptProject({
   devDeps: [
     'projen-github-action-typescript',
     '@types/node-fetch',
+    '@types/semver',
+    '@types/minimatch',
     'esbuild',
   ],
   name: 'cdk-cloudone-conformity-scan-action',
@@ -19,6 +21,8 @@ const project = new GitHubActionTypeScriptProject({
     'node-fetch',
     'form-data',
     'aws-cdk-lib',
+    'semver',
+    'minimatch',
   ],
   actionMetadata: {
     author: 'Service Victoria Platform Engineering',
@@ -44,7 +48,7 @@ const project = new GitHubActionTypeScriptProject({
         default: 'cdk.out',
       },
       selectStacks: {
-        description: 'Limit the scanning to the selected (comma-separated) list of stacks',
+        description: 'Limit the scanning to the selected (comma-separated) list of stacks (support wildcards)',
         required: false,
       },
       outputFile: {

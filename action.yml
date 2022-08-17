@@ -19,7 +19,7 @@ inputs:
     required: false
     default: cdk.out
   selectStacks:
-    description: Limit the scanning to the selected (comma-separated) list of stacks
+    description: Limit the scanning to the selected (comma-separated) list of stacks (support wildcards)
     required: false
   outputFile:
     description: File name in which the markdown output will be written

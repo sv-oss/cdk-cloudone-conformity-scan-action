@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { cx_api, cloud_assembly_schema } from 'aws-cdk-lib';
+import { cx_api as cx_api_next, cloud_assembly_schema as cloud_assembly_schema_next } from 'aws-cdk-lib-next';
 import minimatch from 'minimatch';
 import * as semver from 'semver';
 
@@ -15,11 +16,22 @@ export interface CdkStack {
   readonly resources: CdkResource[];
 }
 
-export function selectStacksFromCloudAssembly(cloudAssemblyDirectory: string, patterns: string[]): CdkStack[] {
-  const asm = new cx_api.CloudAssembly(cloudAssemblyDirectory);
-  const stacks = semver.major(asm.version) < 10 ? asm.stacks : asm.stacksRecursively;
+// union types between schema version 20.0.0 and 21.0.0
+type StackArtifact = cx_api.CloudFormationStackArtifact | cx_api_next.CloudFormationStackArtifact;
+type CloudAssembly = cx_api.CloudAssembly | cx_api_next.CloudAssembly;
+type LogicalIdMetadataEntry = cloud_assembly_schema.LogicalIdMetadataEntry | cloud_assembly_schema_next.LogicalIdMetadataEntry;
 
-  const matchingPattern = (pattern: string) => (stack: cx_api.CloudFormationStackArtifact) => {
+export function selectStacksFromCloudAssembly(cloudAssemblyDirectory: string, patterns: string[]): CdkStack[] {
+  let asm: CloudAssembly;
+  try {
+    asm = new cx_api.CloudAssembly(cloudAssemblyDirectory);
+  } catch (e) {
+    asm = new cx_api_next.CloudAssembly(cloudAssemblyDirectory);
+  }
+
+  const stacks = (semver.major(asm.version) < 10 ? asm.stacks : asm.stacksRecursively) as StackArtifact[];
+
+  const matchingPattern = (pattern: string) => (stack: StackArtifact) => {
     if (minimatch(stack.hierarchicalId, pattern)) {
       return true;
     }
@@ -31,8 +43,8 @@ export function selectStacksFromCloudAssembly(cloudAssemblyDirectory: string, pa
   const extendedStacks = extendStacks(matchedStacks, stacks);
 
   return extendedStacks.map(s => {
-    const stackAccountId = s.environment.account !== cx_api.UNKNOWN_ACCOUNT ? s.environment.account : undefined;
-    const resources: CdkResource[] = s.findMetadataByType('aws:cdk:logicalId').map(m => ({ logicalId: (m.data as cloud_assembly_schema.LogicalIdMetadataEntry), path: m.path }));
+    const stackAccountId = ![cx_api.UNKNOWN_ACCOUNT, cx_api_next.UNKNOWN_ACCOUNT].includes(s.environment.account) ? s.environment.account : undefined;
+    const resources: CdkResource[] = s.findMetadataByType('aws:cdk:logicalId').map(m => ({ logicalId: (m.data as LogicalIdMetadataEntry), path: m.path }));
     return {
       name: s.stackName,
       templateFilePath: join(cloudAssemblyDirectory, s.templateFile),
@@ -65,8 +77,10 @@ export function flatten<T>(xs: T[][]): T[] {
   return Array.prototype.concat.apply([], xs);
 }
 
-function extendStacks(matched: cx_api.CloudFormationStackArtifact[], all: cx_api.CloudFormationStackArtifact[]) {
-  const allStacks = new Map<string, cx_api.CloudFormationStackArtifact>();
+function extendStacks(
+  matched: StackArtifact[],
+  all: StackArtifact[]) {
+  const allStacks = new Map<string, StackArtifact>();
   for (const stack of all) {
     allStacks.set(stack.hierarchicalId, stack);
   }
@@ -81,8 +95,8 @@ function extendStacks(matched: cx_api.CloudFormationStackArtifact[], all: cx_api
   return selectedList;
 }
 
-function indexByHierarchicalId(stacks: cx_api.CloudFormationStackArtifact[]): Map<string, cx_api.CloudFormationStackArtifact> {
-  const result = new Map<string, cx_api.CloudFormationStackArtifact>();
+function indexByHierarchicalId(stacks: StackArtifact[]): Map<string, StackArtifact> {
+  const result = new Map<string, StackArtifact>();
 
   for (const stack of stacks) {
     result.set(stack.hierarchicalId, stack);
@@ -97,8 +111,8 @@ function indexByHierarchicalId(stacks: cx_api.CloudFormationStackArtifact[]): Ma
  * Modifies `selectedStacks` in-place.
  */
 function includeUpstreamStacks(
-  selectedStacks: Map<string, cx_api.CloudFormationStackArtifact>,
-  allStacks: Map<string, cx_api.CloudFormationStackArtifact>) {
+  selectedStacks: Map<string, StackArtifact>,
+  allStacks: Map<string, StackArtifact>) {
   const added = new Array<string>();
   let madeProgress = true;
   while (madeProgress) {

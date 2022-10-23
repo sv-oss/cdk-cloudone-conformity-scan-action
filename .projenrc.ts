@@ -16,6 +16,7 @@ const project = new GitHubActionTypeScriptProject({
   depsUpgradeOptions: {
     workflow: false,
   },
+  majorVersion: 1,
   deps: [
     'wretch',
     'node-fetch',

@@ -108,13 +108,13 @@
       "type": "runtime"
     },
     {
-      "name": "aws-cdk-lib-next",
-      "version": "npm:aws-cdk-lib@2.44.0",
+      "name": "aws-cdk-lib-schema-20",
+      "version": "npm:aws-cdk-lib@2.31.1",
       "type": "runtime"
     },
     {
-      "name": "aws-cdk-lib",
-      "version": "npm:aws-cdk-lib@2.31.1",
+      "name": "aws-cdk-lib-schema-21",
+      "version": "npm:aws-cdk-lib@2.44.0",
       "type": "runtime"
     },
     {

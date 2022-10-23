@@ -1,6 +1,6 @@
 import { join } from 'path';
-import { cx_api, cloud_assembly_schema } from 'aws-cdk-lib';
-import { cx_api as cx_api_next, cloud_assembly_schema as cloud_assembly_schema_next } from 'aws-cdk-lib-next';
+import { cx_api as cx_api_schema_20, cloud_assembly_schema as cloud_assembly_schema_schema_20 } from 'aws-cdk-lib-schema-20';
+import { cx_api as cx_api_schema_21, cloud_assembly_schema as cloud_assembly_schema_schema_21 } from 'aws-cdk-lib-schema-21';
 import minimatch from 'minimatch';
 import * as semver from 'semver';
 
@@ -17,16 +17,16 @@ export interface CdkStack {
 }
 
 // union types between schema version 20.0.0 and 21.0.0
-type StackArtifact = cx_api.CloudFormationStackArtifact | cx_api_next.CloudFormationStackArtifact;
-type CloudAssembly = cx_api.CloudAssembly | cx_api_next.CloudAssembly;
-type LogicalIdMetadataEntry = cloud_assembly_schema.LogicalIdMetadataEntry | cloud_assembly_schema_next.LogicalIdMetadataEntry;
+type StackArtifact = cx_api_schema_20.CloudFormationStackArtifact | cx_api_schema_21.CloudFormationStackArtifact;
+type CloudAssembly = cx_api_schema_20.CloudAssembly | cx_api_schema_21.CloudAssembly;
+type LogicalIdMetadataEntry = cloud_assembly_schema_schema_20.LogicalIdMetadataEntry | cloud_assembly_schema_schema_21.LogicalIdMetadataEntry;
 
 export function selectStacksFromCloudAssembly(cloudAssemblyDirectory: string, patterns: string[]): CdkStack[] {
   let asm: CloudAssembly;
   try {
-    asm = new cx_api.CloudAssembly(cloudAssemblyDirectory);
+    asm = new cx_api_schema_20.CloudAssembly(cloudAssemblyDirectory);
   } catch (e) {
-    asm = new cx_api_next.CloudAssembly(cloudAssemblyDirectory);
+    asm = new cx_api_schema_21.CloudAssembly(cloudAssemblyDirectory);
   }
 
   const stacks = (semver.major(asm.version) < 10 ? asm.stacks : asm.stacksRecursively) as StackArtifact[];
@@ -43,7 +43,11 @@ export function selectStacksFromCloudAssembly(cloudAssemblyDirectory: string, pa
   const extendedStacks = extendStacks(matchedStacks, stacks);
 
   return extendedStacks.map(s => {
-    const stackAccountId = ![cx_api.UNKNOWN_ACCOUNT, cx_api_next.UNKNOWN_ACCOUNT].includes(s.environment.account) ? s.environment.account : undefined;
+    const stackAccountId = ![
+      cx_api_schema_20.UNKNOWN_ACCOUNT,
+      cx_api_schema_21.UNKNOWN_ACCOUNT,
+    ].includes(s.environment.account) ? s.environment.account : undefined;
+
     const resources: CdkResource[] = s.findMetadataByType('aws:cdk:logicalId').map(m => ({ logicalId: (m.data as LogicalIdMetadataEntry), path: m.path }));
     return {
       name: s.stackName,

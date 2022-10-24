@@ -17,6 +17,8 @@ const project = new GitHubActionTypeScriptProject({
     workflow: false,
   },
   majorVersion: 1,
+  license: 'MIT',
+  copyrightOwner: 'Service Victoria',
   deps: [
     'wretch',
     'node-fetch',

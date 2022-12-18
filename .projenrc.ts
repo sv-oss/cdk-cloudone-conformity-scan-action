@@ -23,7 +23,7 @@ const project = new GitHubActionTypeScriptProject({
     'wretch',
     'node-fetch',
     'form-data',
-    'aws-cdk-lib@^2.47.0',
+    'aws-cdk-lib@^2.55.1',
     'semver',
     'minimatch',
   ],

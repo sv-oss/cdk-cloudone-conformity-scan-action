@@ -59,7 +59,7 @@ async function run() {
         const sortedChecks = filteredChecks.sort((a, b) => b.attributes.riskValue - a.attributes.riskValue);
 
         // Render to markdown
-        const markdown = renderMarkdown(sortedChecks, stack, account);
+        const markdown = renderMarkdown(sortedChecks, stack, MAX_COMMENT_SIZE - charCount, account);
 
         if (sortedChecks.length > 0) {
           const level = sortedChecks[0].attributes.riskValue;

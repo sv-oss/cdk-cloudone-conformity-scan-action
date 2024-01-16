@@ -4,6 +4,8 @@ import { selectStacksFromCloudAssembly } from './cdk';
 import { Check, getAccountByAwsAccountId, getAccounts, newConformityApiClient, riskFromValue, scanTemplate } from './conformity';
 import { renderMarkdown } from './template';
 
+const MAX_COMMENT_SIZE = 65535;
+
 async function run() {
   try {
     const apiKey = core.getInput('apiKey', { required: true });
@@ -29,6 +31,9 @@ async function run() {
     const stacksMarkdown: string[] = [];
 
     const cumulativeChecks: Check[] = [];
+    const markdownJoiner = '\n\n---\n\n';
+    let charCount = 0;
+    let exceedsMaxCommentCount = 0;
 
     for ( const stack of filteredStacks) {
       core.debug(`scanning stack ${stack.name}`);
@@ -61,18 +66,26 @@ async function run() {
           stacksRiskValues.push(level);
         }
 
-        stacksMarkdown.push(markdown);
+        if (charCount + markdown.length + markdownJoiner.length <= MAX_COMMENT_SIZE) {
+          stacksMarkdown.push(markdown);
+        } else {
+          exceedsMaxCommentCount++;
+        }
       }
     }
 
     // Output the highest risk level found in the checks or NONE
-    const maxRisk = stacksRiskValues.length > 0 ? Math.max(...stacksRiskValues) : 0;
+    const maxRisk = Math.max(0, ...stacksRiskValues);
     core.setOutput('risk', riskFromValue(maxRisk));
     core.setOutput('riskValue', maxRisk);
     core.setOutput('summary', getSummary(cumulativeChecks));
 
     // Write output file
-    const aggregateMarkdown = stacksMarkdown.join('\n\n---\n\n');
+    let aggregateMarkdown = stacksMarkdown.join(markdownJoiner);
+    if (exceedsMaxCommentCount > 0) {
+      aggregateMarkdown += `And ${exceedsMaxCommentCount} more`;
+    }
+
     writeFileSync(outputFile, aggregateMarkdown);
 
 
@@ -81,12 +94,20 @@ async function run() {
   }
 }
 
-function getSummary(checks: Check[]): string {
-  const lowChecksCount = checks.filter(c => c.attributes['risk-level'] === 'LOW').length.toString();
-  const mediumChecksCount = checks.filter(c => c.attributes['risk-level'] === 'MEDIUM').length.toString();
-  const highChecksCount = checks.filter(c => c.attributes['risk-level'] === 'HIGH').length.toString();
+function toSentenceCase(str: string) {
+  return str[0].toUpperCase() + str.substring(1).toLowerCase();
+}
 
-  return `${highChecksCount} High, ${mediumChecksCount} Medium, ${lowChecksCount} Low`;
+function getSummary(checks: Check[]): string {
+  const checkCounts: Record<string, number> = {};
+  checks.forEach(check => {
+    if (!(check.attributes['risk-level'] in checkCounts)) {
+      checkCounts[check.attributes['risk-level']] = 0;
+    }
+    checkCounts[check.attributes['risk-level']]++;
+  });
+
+  return Object.entries(checkCounts).map(([key, value]) => `${value} ${toSentenceCase(key)}`).join(', ');
 }
 
 void run();

@@ -16,19 +16,19 @@ const project = new GitHubActionTypeScriptProject({
   minNodeVersion: '20.12.1',
   depsUpgradeOptions: {
     workflowOptions: {
-      projenCredentials: github.GithubCredentials.fromApp({
-        appIdSecret: 'CICD_APP_ID',
-        privateKeySecret: 'CICD_APP_PRIVKEY',
-      }),
       labels: ['deps-upgrade'],
     },
   },
+  projenCredentials: github.GithubCredentials.fromApp({
+    appIdSecret: 'CICD_APP_ID',
+    privateKeySecret: 'CICD_APP_PRIVKEY',
+  }),
   autoApproveOptions: {
     label: 'deps-upgrade',
     allowedUsernames: [],
   },
   dependabot: false,
-  mutableBuild: false,
+  mutableBuild: true,
   minMajorVersion: 1,
   license: 'MIT',
   copyrightOwner: 'Service Victoria',
@@ -75,6 +75,8 @@ const project = new GitHubActionTypeScriptProject({
     },
   },
 });
+
+// project.tasks.tryFind('upgrade')?.spawn(project.tasks.tryFind('build')!);
 
 project.addGitIgnore('cdk.out');
 project.addGitIgnore('output.md');

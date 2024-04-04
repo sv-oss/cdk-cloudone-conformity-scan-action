@@ -28,7 +28,7 @@ const project = new GitHubActionTypeScriptProject({
     allowedUsernames: [],
   },
   dependabot: false,
-  mutableBuild: true,
+  mutableBuild: false,
   minMajorVersion: 1,
   license: 'MIT',
   copyrightOwner: 'Service Victoria',
@@ -76,7 +76,6 @@ const project = new GitHubActionTypeScriptProject({
   },
 });
 
-// project.tasks.tryFind('upgrade')?.spawn(project.tasks.tryFind('build')!);
 
 project.addGitIgnore('cdk.out');
 project.addGitIgnore('output.md');
@@ -84,6 +83,9 @@ project.addGitIgnore('output.md');
 project.tsconfig?.compilerOptions.lib?.push('dom');
 
 project.packageTask.reset('esbuild --platform=node --bundle lib/index.js --outdir=dist --minify --sourcemap');
+
+// Build the project after upgrading so that the compiled JS ends up being committed
+project.tasks.tryFind('post-upgrade')?.spawn(project.buildTask);
 
 project.release?.addJobs({
   'floating-tags': {

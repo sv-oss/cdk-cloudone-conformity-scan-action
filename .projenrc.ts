@@ -1,4 +1,4 @@
-import { javascript } from 'projen';
+import { javascript, github } from 'projen';
 import { GitHubActionTypeScriptProject, RunsUsing } from 'projen-github-action-typescript';
 
 const project = new GitHubActionTypeScriptProject({
@@ -13,10 +13,23 @@ const project = new GitHubActionTypeScriptProject({
   name: 'cdk-cloudone-conformity-scan-action',
   packageManager: javascript.NodePackageManager.NPM,
   projenrcTs: true,
+  minNodeVersion: '20.12.1',
   depsUpgradeOptions: {
-    workflow: false,
+    workflowOptions: {
+      projenCredentials: github.GithubCredentials.fromApp({
+        appIdSecret: 'CICD_APP_ID',
+        privateKeySecret: 'CICD_APP_PRIVKEY',
+      }),
+      labels: ['deps-upgrade'],
+    },
   },
-  majorVersion: 1,
+  autoApproveOptions: {
+    label: 'deps-upgrade',
+    allowedUsernames: [],
+  },
+  dependabot: false,
+  mutableBuild: false,
+  minMajorVersion: 1,
   license: 'MIT',
   copyrightOwner: 'Service Victoria',
   deps: [
@@ -32,7 +45,7 @@ const project = new GitHubActionTypeScriptProject({
     name: 'Cloud One Conformity Scan',
     description: 'Perform a conformity scan on a CDK cloud assembly using TrendMicro CloudOne Conformity',
     runs: {
-      using: RunsUsing.NODE_16,
+      using: RunsUsing.NODE_20,
       main: 'dist/index.js',
     },
     inputs: {
@@ -69,5 +82,20 @@ project.addGitIgnore('output.md');
 project.tsconfig?.compilerOptions.lib?.push('dom');
 
 project.packageTask.reset('esbuild --platform=node --bundle lib/index.js --outdir=dist --minify --sourcemap');
+
+project.release?.addJobs({
+  'floating-tags': {
+    permissions: {
+      contents: github.workflows.JobPermission.WRITE,
+    },
+    runsOn: ['ubuntu-latest'],
+    needs: ['release_github'],
+    steps: [
+      { uses: 'actions/checkout@v4' },
+      { uses: 'giantswarm/floating-tags-action@v1' },
+    ],
+  },
+});
+
 
 project.synth();

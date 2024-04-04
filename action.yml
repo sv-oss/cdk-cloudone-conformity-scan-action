@@ -3,7 +3,7 @@
 name: Cloud One Conformity Scan
 description: Perform a conformity scan on a CDK cloud assembly using TrendMicro CloudOne Conformity
 runs:
-  using: node16
+  using: node20
   main: dist/index.js
 author: Service Victoria Platform Engineering
 inputs:

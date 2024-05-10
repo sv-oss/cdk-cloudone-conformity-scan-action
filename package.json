@@ -51,7 +51,7 @@
     "form-data": "^3.0.1",
     "minimatch": "^3.1.2",
     "node-fetch": "^2.7.0",
-    "semver": "^7.6.1",
+    "semver": "^7.6.2",
     "wretch": "^1.7.10"
   },
   "engines": {

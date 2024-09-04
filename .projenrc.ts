@@ -82,7 +82,7 @@ const project = new GitHubActionTypeScriptProject({
 project.addGitIgnore('cdk.out');
 project.addGitIgnore('output.md');
 
-project.tsconfig?.compilerOptions.lib?.push('dom');
+project.tsconfig?.compilerOptions?.lib?.push('dom');
 
 project.packageTask.reset('esbuild --platform=node --bundle lib/index.js --outdir=dist --minify --sourcemap');
 

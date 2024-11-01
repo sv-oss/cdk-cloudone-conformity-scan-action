@@ -230,7 +230,7 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@16 --upgrade --target=minor --peer --dep=dev,peer,prod,optional --filter=@types/jest,@types/minimatch,@types/node-fetch,@types/semver,@vercel/ncc,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,projen-github-action-typescript,ts-jest,ts-node,typescript,@actions/core,@actions/github,aws-cdk-lib,form-data,minimatch,node-fetch,semver,wretch"
+          "exec": "npx npm-check-updates@16 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/jest,@types/minimatch,@types/node-fetch,@types/semver,@vercel/ncc,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,projen-github-action-typescript,ts-jest,ts-node,typescript,@actions/core,@actions/github,aws-cdk-lib,form-data,minimatch,node-fetch,semver,wretch"
         },
         {
           "exec": "npm install"
